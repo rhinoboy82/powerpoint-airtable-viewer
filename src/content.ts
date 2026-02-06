@@ -10,10 +10,8 @@ function $(id: string): HTMLElement {
 
 /* ---- Initialization ---- */
 
-Office.onReady((info) => {
-  if (info.host === Office.HostType.PowerPoint) {
-    initializeAddin();
-  }
+Office.onReady(() => {
+  initializeAddin();
 });
 
 function initializeAddin(): void {
@@ -24,9 +22,14 @@ function initializeAddin(): void {
   });
 
   // Check for a previously saved URL
-  const savedUrl = Office.context.document.settings.get(SETTINGS_KEY);
-  if (savedUrl && typeof savedUrl === "string") {
-    loadEmbedView(savedUrl);
+  try {
+    const savedUrl = Office.context.document.settings.get(SETTINGS_KEY);
+    if (savedUrl && typeof savedUrl === "string") {
+      loadEmbedView(savedUrl);
+    }
+  } catch (e) {
+    // Settings API not available (e.g. opened outside PowerPoint)
+    console.log("Settings API not available:", e);
   }
 }
 
@@ -60,26 +63,43 @@ function onLoadClicked(): void {
   }
 
   // Persist to document settings
-  Office.context.document.settings.set(SETTINGS_KEY, url);
-  Office.context.document.settings.saveAsync((result) => {
-    if (result.status === Office.AsyncResultStatus.Succeeded) {
-      loadEmbedView(url);
-    } else {
-      showError("Failed to save settings. " + (result.error?.message || ""));
-    }
-  });
+  try {
+    Office.context.document.settings.set(SETTINGS_KEY, url);
+    Office.context.document.settings.saveAsync((result) => {
+      if (result.status === Office.AsyncResultStatus.Succeeded) {
+        loadEmbedView(url);
+      } else {
+        showError("Failed to save: " + (result.error?.message || ""));
+      }
+    });
+  } catch (e) {
+    // Settings API not available — still load the URL
+    console.log("Settings API not available, loading without persistence:", e);
+    loadEmbedView(url);
+  }
 }
 
 function onSettingsClicked(): void {
+  // Clear the iframe to stop any content
+  const iframe = $("embed-frame") as HTMLIFrameElement;
+  iframe.src = "about:blank";
+
   // Switch back to config view
   $("display-view").classList.add("hidden");
   $("config-view").classList.remove("hidden");
 
   // Pre-populate with current URL
-  const savedUrl = Office.context.document.settings.get(SETTINGS_KEY);
-  if (savedUrl) {
-    ($("url-input") as HTMLInputElement).value = savedUrl;
+  try {
+    const savedUrl = Office.context.document.settings.get(SETTINGS_KEY);
+    if (savedUrl) {
+      ($("url-input") as HTMLInputElement).value = savedUrl;
+    }
+  } catch (e) {
+    // Settings not available
   }
+
+  // Focus the input
+  ($("url-input") as HTMLInputElement).select();
 }
 
 /* ---- View Switching ---- */
