@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<OfficeApp
+  xmlns="http://schemas.microsoft.com/office/appforoffice/1.1"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:type="ContentApp">
+
+  <Id>94f1f1ac-8278-4a33-8989-5739d7e5452a</Id>
+  <Version>1.0.0.0</Version>
+  <ProviderName>1010 Development</ProviderName>
+  <DefaultLocale>en-US</DefaultLocale>
+
+  <DisplayName DefaultValue="Airtable Viewer" />
+  <Description DefaultValue="Embeds a live Airtable Interface or View directly on a PowerPoint slide." />
+
+  <IconUrl DefaultValue="https://rhinoboy82.github.io/powerpoint-airtable-viewer/assets/icon-32.png" />
+  <HighResolutionIconUrl DefaultValue="https://rhinoboy82.github.io/powerpoint-airtable-viewer/assets/icon-64.png" />
+
+  <SupportUrl DefaultValue="https://rhinoboy82.github.io/powerpoint-airtable-viewer" />
+
+  <Hosts>
+    <Host Name="Presentation" />
+  </Hosts>
+
+  <Requirements>
+    <Sets>
+      <Set Name="PowerPointApi" MinVersion="1.1" />
+    </Sets>
+  </Requirements>
+
+  <DefaultSettings>
+    <SourceLocation DefaultValue="https://rhinoboy82.github.io/powerpoint-airtable-viewer/content.html" />
+    <RequestedWidth>800</RequestedWidth>
+    <RequestedHeight>600</RequestedHeight>
+  </DefaultSettings>
+
+  <Permissions>ReadWriteDocument</Permissions>
+
+  <AppDomains>
+    <AppDomain>https://airtable.com</AppDomain>
+    <AppDomain>https://www.airtable.com</AppDomain>
+  </AppDomains>
+
+  <AllowSnapshot>false</AllowSnapshot>
+
+</OfficeApp>

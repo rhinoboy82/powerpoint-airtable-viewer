@@ -1,0 +1,27 @@
+{
+  "name": "powerpoint-airtable-viewer",
+  "version": "1.0.0",
+  "description": "PowerPoint Content Add-in that embeds live Airtable views on slides",
+  "private": true,
+  "scripts": {
+    "dev": "webpack serve --mode development",
+    "build": "webpack --mode production",
+    "generate-certs": "mkdir -p certs && cd certs && mkcert localhost",
+    "sideload": "mkdir -p \"$HOME/Library/Containers/com.microsoft.Powerpoint/Data/Documents/wef\" && cp manifest.xml \"$HOME/Library/Containers/com.microsoft.Powerpoint/Data/Documents/wef/\"",
+    "setup": "npm run generate-certs && npm run sideload",
+    "validate": "npx office-addin-manifest validate manifest.xml"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "@types/office-js": "^1.0.0",
+    "copy-webpack-plugin": "^12.0.0",
+    "css-loader": "^7.1.0",
+    "html-webpack-plugin": "^5.6.0",
+    "style-loader": "^4.0.0",
+    "ts-loader": "^9.5.0",
+    "typescript": "^5.5.0",
+    "webpack": "^5.90.0",
+    "webpack-cli": "^5.1.0",
+    "webpack-dev-server": "^5.0.0"
+  }
+}
