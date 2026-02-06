@@ -9,8 +9,8 @@
   <ProviderName>1010 Development</ProviderName>
   <DefaultLocale>en-US</DefaultLocale>
 
-  <DisplayName DefaultValue="Airtable Viewer" />
-  <Description DefaultValue="Embeds a live Airtable Interface or View directly on a PowerPoint slide." />
+  <DisplayName DefaultValue="Slide Viewer" />
+  <Description DefaultValue="Embeds any webpage directly on a PowerPoint slide via iframe." />
 
   <IconUrl DefaultValue="https://rhinoboy82.github.io/powerpoint-airtable-viewer/assets/icon-32.png" />
   <HighResolutionIconUrl DefaultValue="https://rhinoboy82.github.io/powerpoint-airtable-viewer/assets/icon-64.png" />
