@@ -1,33 +1,40 @@
-# Airtable Viewer — PowerPoint Content Add-in
+# Slide Viewer — PowerPoint Content Add-in
 
-A PowerPoint Content Add-in for macOS that embeds a live Airtable Interface or View directly on a slide. The Airtable URL is saved in the PowerPoint file so it persists when reopened.
+A PowerPoint Content Add-in for macOS that embeds any webpage directly on a slide via iframe. The URL is saved in the PowerPoint file so it persists when reopened.
+
+Works with Airtable interfaces, dashboards, Google Sheets, Notion pages, or any site that allows iframe embedding.
 
 ## Prerequisites
 
-- **Node.js** 18+ and npm
-- **mkcert** for local HTTPS certificates:
-  ```bash
-  brew install mkcert
-  mkcert -install
-  ```
 - **PowerPoint for Mac** version 16.x or later
 
-## Quick Start
+For development only:
+- **Node.js** 18+ and npm
+- **mkcert** for local HTTPS certificates (`brew install mkcert && mkcert -install`)
 
-```bash
-# 1. Install dependencies
-npm install
+## Quick Start (hosted on GitHub Pages — no dev server needed)
 
-# 2. Generate HTTPS certs + copy manifest to PowerPoint
-npm run setup
+1. Copy `manifest.xml` to the PowerPoint sideload folder:
+   ```bash
+   npm run sideload
+   ```
+   Or manually copy it to:
+   ```
+   ~/Library/Containers/com.microsoft.Powerpoint/Data/Documents/wef
+   ```
+2. Restart PowerPoint
+3. Open a presentation, go to **Home > Add-ins**, and insert **Slide Viewer**
 
-# 3. Start the dev server
-npm run dev
-```
+## Usage
 
-Then open PowerPoint, go to **Home > Add-ins**, and insert **Airtable Viewer**.
+1. Insert the add-in on a slide — it appears as a content box
+2. Paste any HTTPS URL (e.g. `https://airtable.com/embed/shr...` or any webpage)
+3. Click **Load** — the page renders live in the add-in
+4. **Save the presentation** to persist the URL across sessions
+5. Click the gear icon (top-right) to change the URL
+6. Resize the add-in on the slide to fit your layout
 
-## Manual Sideloading (if `npm run setup` doesn't work)
+## Manual Sideloading
 
 1. Open Finder and press **Cmd + Shift + G**
 2. Navigate to:
@@ -37,22 +44,26 @@ Then open PowerPoint, go to **Home > Add-ins**, and insert **Airtable Viewer**.
 3. If the `wef` folder doesn't exist, create it
 4. Copy `manifest.xml` into that folder
 5. Restart PowerPoint
-6. Open a presentation and go to **Home > Add-ins** — look for "Airtable Viewer"
+6. Open a presentation and go to **Home > Add-ins** — look for "Slide Viewer"
 
-## Usage
+## Development
 
-1. Insert the add-in on a slide — it appears as a content box
-2. Paste an Airtable embed URL (e.g. `https://airtable.com/embed/shr...`)
-3. Click **Load View** — the Airtable view renders live in the add-in
-4. **Save the presentation** to persist the URL across sessions
-5. Click the gear icon (top-right) to change the URL
+```bash
+# Install dependencies
+npm install
 
-## Getting an Airtable Embed URL
+# Generate HTTPS certs + sideload manifest
+npm run setup
 
-1. In Airtable, open the view or interface you want to embed
-2. Click **Share and sync** (or **Share** on Interfaces)
-3. Click **Embed this view** or enable **Share to web**
-4. Copy the URL — it starts with `https://airtable.com/embed/...`
+# Start dev server (https://localhost:3000)
+npm run dev
+
+# Production build
+npm run build
+
+# Deploy to GitHub Pages
+npm run deploy
+```
 
 ## npm Scripts
 
@@ -60,20 +71,22 @@ Then open PowerPoint, go to **Home > Add-ins**, and insert **Airtable Viewer**.
 |--------|-------------|
 | `npm run dev` | Start webpack-dev-server (HTTPS, port 3000) |
 | `npm run build` | Production build to `dist/` |
+| `npm run deploy` | Build + push to gh-pages branch |
 | `npm run setup` | Generate certs + sideload manifest |
-| `npm run generate-certs` | Create localhost HTTPS certs via mkcert |
 | `npm run sideload` | Copy manifest.xml to PowerPoint wef folder |
 | `npm run validate` | Validate manifest.xml with Office tooling |
 
 ## How It Works
 
-- **Manifest type**: `ContentApp` (embeds on the slide, not a side panel)
+- **Manifest type**: `ContentApp` — embeds on the slide surface, not a side panel
 - **Settings persistence**: Uses `Office.context.document.settings` to store the URL in the .pptx file
-- **Dev server**: webpack-dev-server with HTTPS on `https://localhost:3000`
+- **Hosting**: Static files served from GitHub Pages (no dev server needed for production use)
 - **Rendering engine**: WebKit (Safari) on macOS
+- **Security**: iframe uses `sandbox` attribute; only HTTPS URLs accepted
 
-## Known Limitations
+## Notes
 
+- Some websites block iframe embedding via `X-Frame-Options` or CSP headers — these won't load
 - Content add-ins may not be interactive during slideshow/presentation mode
-- Designed for one Airtable view per presentation (multi-instance shares settings)
-- The dev server must be running for the add-in to load during development
+- If the same add-in is inserted on multiple slides, they share the saved URL
+- The hosted files live at: https://rhinoboy82.github.io/powerpoint-airtable-viewer/

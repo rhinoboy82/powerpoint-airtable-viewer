@@ -1,7 +1,6 @@
 import "./content.css";
 
-const SETTINGS_KEY = "airtableUrl";
-const AIRTABLE_EMBED_PATTERN = /^https:\/\/airtable\.com\/embed\//;
+const SETTINGS_KEY = "embedUrl";
 
 /* ---- DOM References ---- */
 
@@ -27,16 +26,16 @@ function initializeAddin(): void {
   // Check for a previously saved URL
   const savedUrl = Office.context.document.settings.get(SETTINGS_KEY);
   if (savedUrl && typeof savedUrl === "string") {
-    loadAirtableView(savedUrl);
+    loadEmbedView(savedUrl);
   }
 }
 
 /* ---- URL Validation ---- */
 
-function isValidEmbedUrl(url: string): boolean {
+function isValidHttpsUrl(url: string): boolean {
   try {
-    new URL(url);
-    return AIRTABLE_EMBED_PATTERN.test(url);
+    const parsed = new URL(url);
+    return parsed.protocol === "https:";
   } catch {
     return false;
   }
@@ -55,10 +54,8 @@ function onLoadClicked(): void {
     return;
   }
 
-  if (!isValidEmbedUrl(url)) {
-    showError(
-      "Enter a valid Airtable embed URL (starts with https://airtable.com/embed/)"
-    );
+  if (!isValidHttpsUrl(url)) {
+    showError("Please enter a valid HTTPS URL.");
     return;
   }
 
@@ -66,7 +63,7 @@ function onLoadClicked(): void {
   Office.context.document.settings.set(SETTINGS_KEY, url);
   Office.context.document.settings.saveAsync((result) => {
     if (result.status === Office.AsyncResultStatus.Succeeded) {
-      loadAirtableView(url);
+      loadEmbedView(url);
     } else {
       showError("Failed to save settings. " + (result.error?.message || ""));
     }
@@ -87,8 +84,8 @@ function onSettingsClicked(): void {
 
 /* ---- View Switching ---- */
 
-function loadAirtableView(url: string): void {
-  const iframe = $("airtable-frame") as HTMLIFrameElement;
+function loadEmbedView(url: string): void {
+  const iframe = $("embed-frame") as HTMLIFrameElement;
   iframe.src = url;
 
   $("config-view").classList.add("hidden");

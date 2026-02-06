@@ -1,11 +1,12 @@
 {
-  "name": "powerpoint-airtable-viewer",
-  "version": "1.0.0",
-  "description": "PowerPoint Content Add-in that embeds live Airtable views on slides",
+  "name": "powerpoint-slide-viewer",
+  "version": "1.1.0",
+  "description": "PowerPoint Content Add-in that embeds any webpage on a slide via iframe",
   "private": true,
   "scripts": {
     "dev": "webpack serve --mode development",
     "build": "webpack --mode production",
+    "deploy": "npm run build && git stash && git checkout gh-pages && cp -r dist/* . && git add content.html content.js manifest.xml assets/ && git commit -m 'Deploy to GitHub Pages' && git push origin gh-pages && git checkout main && git stash pop",
     "generate-certs": "mkdir -p certs && cd certs && mkcert localhost",
     "sideload": "mkdir -p \"$HOME/Library/Containers/com.microsoft.Powerpoint/Data/Documents/wef\" && cp manifest.xml \"$HOME/Library/Containers/com.microsoft.Powerpoint/Data/Documents/wef/\"",
     "setup": "npm run generate-certs && npm run sideload",
