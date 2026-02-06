@@ -29,8 +29,8 @@
 
   <DefaultSettings>
     <SourceLocation DefaultValue="https://rhinoboy82.github.io/powerpoint-airtable-viewer/content.html" />
-    <RequestedWidth>1000</RequestedWidth>
-    <RequestedHeight>750</RequestedHeight>
+    <RequestedWidth>875</RequestedWidth>
+    <RequestedHeight>414</RequestedHeight>
   </DefaultSettings>
 
   <Permissions>ReadWriteDocument</Permissions>
