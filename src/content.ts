@@ -1,12 +1,17 @@
 import "./content.css";
 
-const SETTINGS_KEY = "embedUrl";
+const SETTINGS_URL_KEY = "embedUrl";
+const SETTINGS_VIEWPORT_KEY = "viewportWidth";
 
 /* ---- DOM References ---- */
 
 function $(id: string): HTMLElement {
   return document.getElementById(id)!;
 }
+
+/* ---- State ---- */
+
+let currentViewportWidth = 0; // 0 = auto (no scaling)
 
 /* ---- Initialization ---- */
 
@@ -21,16 +26,89 @@ function initializeAddin(): void {
     if ((e as KeyboardEvent).key === "Enter") onLoadClicked();
   });
 
-  // Check for a previously saved URL
+  // Viewport slider
+  const slider = $("viewport-slider") as HTMLInputElement;
+  slider.addEventListener("input", () => {
+    currentViewportWidth = parseInt(slider.value, 10);
+    updateViewportLabel();
+  });
+
+  // Preset buttons
+  document.querySelectorAll(".preset-btn").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const width = parseInt((btn as HTMLElement).dataset.width || "0", 10);
+      currentViewportWidth = width;
+      slider.value = String(width);
+      updateViewportLabel();
+    });
+  });
+
+  // Recalculate scale when the add-in is resized
+  window.addEventListener("resize", applyScale);
+
+  // Check for previously saved settings
   try {
-    const savedUrl = Office.context.document.settings.get(SETTINGS_KEY);
+    const savedUrl = Office.context.document.settings.get(SETTINGS_URL_KEY);
+    const savedViewport = Office.context.document.settings.get(SETTINGS_VIEWPORT_KEY);
+
+    if (savedViewport !== null && savedViewport !== undefined) {
+      currentViewportWidth = parseInt(savedViewport, 10) || 0;
+      slider.value = String(currentViewportWidth);
+      updateViewportLabel();
+    }
+
     if (savedUrl && typeof savedUrl === "string") {
       loadEmbedView(savedUrl);
     }
   } catch (e) {
-    // Settings API not available (e.g. opened outside PowerPoint)
     console.log("Settings API not available:", e);
   }
+}
+
+/* ---- Viewport Label ---- */
+
+function updateViewportLabel(): void {
+  const label = $("viewport-label");
+  if (currentViewportWidth === 0) {
+    label.textContent = "Auto (fit to box)";
+  } else {
+    label.textContent = currentViewportWidth + "px wide";
+  }
+}
+
+/* ---- Scaling Logic ---- */
+
+function applyScale(): void {
+  const wrapper = $("iframe-wrapper");
+  const iframe = $("embed-frame") as HTMLIFrameElement;
+  const container = $("display-view");
+
+  const containerWidth = container.clientWidth;
+  const containerHeight = container.clientHeight;
+
+  if (currentViewportWidth === 0 || currentViewportWidth <= containerWidth) {
+    // Auto mode — iframe fills the container normally
+    iframe.style.width = "100%";
+    iframe.style.height = "100%";
+    iframe.style.transform = "";
+    iframe.style.transformOrigin = "";
+    wrapper.style.width = "100%";
+    wrapper.style.height = "100%";
+    wrapper.style.overflow = "";
+    return;
+  }
+
+  // Scale mode: iframe is wider than container, scale it down
+  const scale = containerWidth / currentViewportWidth;
+  const scaledHeight = containerHeight / scale;
+
+  iframe.style.width = currentViewportWidth + "px";
+  iframe.style.height = scaledHeight + "px";
+  iframe.style.transform = "scale(" + scale + ")";
+  iframe.style.transformOrigin = "0 0";
+  wrapper.style.width = containerWidth + "px";
+  wrapper.style.height = containerHeight + "px";
+  wrapper.style.overflow = "hidden";
 }
 
 /* ---- URL Validation ---- */
@@ -64,7 +142,8 @@ function onLoadClicked(): void {
 
   // Persist to document settings
   try {
-    Office.context.document.settings.set(SETTINGS_KEY, url);
+    Office.context.document.settings.set(SETTINGS_URL_KEY, url);
+    Office.context.document.settings.set(SETTINGS_VIEWPORT_KEY, currentViewportWidth);
     Office.context.document.settings.saveAsync((result) => {
       if (result.status === Office.AsyncResultStatus.Succeeded) {
         loadEmbedView(url);
@@ -73,32 +152,34 @@ function onLoadClicked(): void {
       }
     });
   } catch (e) {
-    // Settings API not available — still load the URL
     console.log("Settings API not available, loading without persistence:", e);
     loadEmbedView(url);
   }
 }
 
 function onSettingsClicked(): void {
-  // Clear the iframe to stop any content
   const iframe = $("embed-frame") as HTMLIFrameElement;
   iframe.src = "about:blank";
 
-  // Switch back to config view
   $("display-view").classList.add("hidden");
   $("config-view").classList.remove("hidden");
 
-  // Pre-populate with current URL
+  // Pre-populate with current settings
   try {
-    const savedUrl = Office.context.document.settings.get(SETTINGS_KEY);
+    const savedUrl = Office.context.document.settings.get(SETTINGS_URL_KEY);
     if (savedUrl) {
       ($("url-input") as HTMLInputElement).value = savedUrl;
+    }
+    const savedViewport = Office.context.document.settings.get(SETTINGS_VIEWPORT_KEY);
+    if (savedViewport !== null && savedViewport !== undefined) {
+      currentViewportWidth = parseInt(savedViewport, 10) || 0;
+      ($("viewport-slider") as HTMLInputElement).value = String(currentViewportWidth);
+      updateViewportLabel();
     }
   } catch (e) {
     // Settings not available
   }
 
-  // Focus the input
   ($("url-input") as HTMLInputElement).select();
 }
 
@@ -110,6 +191,11 @@ function loadEmbedView(url: string): void {
 
   $("config-view").classList.add("hidden");
   $("display-view").classList.remove("hidden");
+
+  // Apply scaling after a brief delay to let the container render
+  requestAnimationFrame(() => {
+    applyScale();
+  });
 }
 
 /* ---- Error Display ---- */
