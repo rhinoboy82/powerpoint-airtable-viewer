@@ -12,7 +12,6 @@ function $(id: string): HTMLElement {
 /* ---- State ---- */
 
 let currentViewportWidth = 0; // 0 = auto (no scaling)
-let hideButtonTimer: ReturnType<typeof setTimeout> | null = null;
 let isPresentationMode = false;
 
 /* ---- Initialization ---- */
@@ -50,10 +49,6 @@ function initializeAddin(): void {
     applyScale();
     checkPresentationMode();
   });
-
-  // Auto-hide edit button after inactivity
-  document.addEventListener("mousemove", onMouseActivity);
-  document.addEventListener("mousedown", onMouseActivity);
 
   // Check presentation mode on init
   checkPresentationMode();
@@ -99,18 +94,6 @@ function checkPresentationMode(): void {
     isPresentationMode = false;
   }
   updateEditButtonVisibility();
-}
-
-function onMouseActivity(): void {
-  if (isPresentationMode) return; // stay hidden in presentation mode
-
-  const btn = $("settings-btn");
-  btn.classList.remove("auto-hidden");
-
-  if (hideButtonTimer) clearTimeout(hideButtonTimer);
-  hideButtonTimer = setTimeout(() => {
-    btn.classList.add("auto-hidden");
-  }, 3000);
 }
 
 function updateEditButtonVisibility(): void {
