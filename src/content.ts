@@ -50,8 +50,17 @@ function initializeAddin(): void {
     checkPresentationMode();
   });
 
-  // Check presentation mode on init
+  // Detect presentation mode changes
   checkPresentationMode();
+  try {
+    Office.context.document.addHandlerAsync(
+      Office.EventType.ActiveViewChanged,
+      () => { checkPresentationMode(); }
+    );
+  } catch (e) {
+    // Event not supported — fall back to polling
+    setInterval(checkPresentationMode, 2000);
+  }
 
   // Check for previously saved settings
   try {
@@ -87,13 +96,21 @@ function updateViewportLabel(): void {
 
 function checkPresentationMode(): void {
   try {
-    // Office.context.document.mode is "readOnly" during slideshow
-    isPresentationMode =
-      Office.context.document.mode === Office.DocumentMode.ReadOnly;
+    // Primary: getActiveViewAsync returns the actual current view
+    Office.context.document.getActiveViewAsync((result) => {
+      if (result.status === Office.AsyncResultStatus.Succeeded) {
+        isPresentationMode = result.value === "read";
+      } else {
+        // Fallback: check document mode
+        isPresentationMode =
+          Office.context.document.mode === Office.DocumentMode.ReadOnly;
+      }
+      updateEditButtonVisibility();
+    });
   } catch (e) {
     isPresentationMode = false;
+    updateEditButtonVisibility();
   }
-  updateEditButtonVisibility();
 }
 
 function updateEditButtonVisibility(): void {
