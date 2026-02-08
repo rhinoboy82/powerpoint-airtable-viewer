@@ -12,6 +12,8 @@ function $(id: string): HTMLElement {
 /* ---- State ---- */
 
 let currentViewportWidth = 0; // 0 = auto (no scaling)
+let hideButtonTimer: ReturnType<typeof setTimeout> | null = null;
+let isPresentationMode = false;
 
 /* ---- Initialization ---- */
 
@@ -44,7 +46,17 @@ function initializeAddin(): void {
   });
 
   // Recalculate scale when the add-in is resized
-  window.addEventListener("resize", applyScale);
+  window.addEventListener("resize", () => {
+    applyScale();
+    checkPresentationMode();
+  });
+
+  // Auto-hide edit button after inactivity
+  document.addEventListener("mousemove", onMouseActivity);
+  document.addEventListener("mousedown", onMouseActivity);
+
+  // Check presentation mode on init
+  checkPresentationMode();
 
   // Check for previously saved settings
   try {
@@ -73,6 +85,40 @@ function updateViewportLabel(): void {
     label.textContent = "Auto (fit to box)";
   } else {
     label.textContent = currentViewportWidth + "px wide";
+  }
+}
+
+/* ---- Presentation Mode Detection ---- */
+
+function checkPresentationMode(): void {
+  try {
+    // Office.context.document.mode is "readOnly" during slideshow
+    isPresentationMode =
+      Office.context.document.mode === Office.DocumentMode.ReadOnly;
+  } catch (e) {
+    isPresentationMode = false;
+  }
+  updateEditButtonVisibility();
+}
+
+function onMouseActivity(): void {
+  if (isPresentationMode) return; // stay hidden in presentation mode
+
+  const btn = $("settings-btn");
+  btn.classList.remove("auto-hidden");
+
+  if (hideButtonTimer) clearTimeout(hideButtonTimer);
+  hideButtonTimer = setTimeout(() => {
+    btn.classList.add("auto-hidden");
+  }, 3000);
+}
+
+function updateEditButtonVisibility(): void {
+  const btn = $("settings-btn");
+  if (isPresentationMode) {
+    btn.classList.add("presentation-hidden");
+  } else {
+    btn.classList.remove("presentation-hidden");
   }
 }
 
