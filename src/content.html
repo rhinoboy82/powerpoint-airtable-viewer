@@ -32,6 +32,14 @@
           <label for="viewport-slider">
             Virtual width: <span id="viewport-label">Auto (fit to box)</span>
           </label>
+          <div class="viewport-presets">
+            <button class="preset-btn" data-width="0">Auto</button>
+            <button class="preset-btn" data-width="1024">1024</button>
+            <button class="preset-btn" data-width="1280">1280</button>
+            <button class="preset-btn" data-width="1440">1440</button>
+            <button class="preset-btn" data-width="1920">1920</button>
+          </div>
+          <div class="viewport-divider">or drag to fine-tune</div>
           <input
             type="range"
             id="viewport-slider"
@@ -40,13 +48,6 @@
             step="80"
             value="0"
           />
-          <div class="viewport-presets">
-            <button class="preset-btn" data-width="0">Auto</button>
-            <button class="preset-btn" data-width="1024">1024</button>
-            <button class="preset-btn" data-width="1280">1280</button>
-            <button class="preset-btn" data-width="1440">1440</button>
-            <button class="preset-btn" data-width="1920">1920</button>
-          </div>
         </div>
 
         <button id="load-btn">Load</button>

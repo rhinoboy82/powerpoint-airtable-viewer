@@ -123,7 +123,16 @@ body {
 .viewport-presets {
   display: flex;
   gap: 6px;
-  margin-top: 8px;
+  margin-top: 6px;
+}
+
+.viewport-divider {
+  margin: 10px 0 6px;
+  padding-top: 8px;
+  border-top: 1px solid #d0d0d0;
+  font-size: 11px;
+  color: #999;
+  text-align: center;
 }
 
 .preset-btn {
