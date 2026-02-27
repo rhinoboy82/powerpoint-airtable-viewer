@@ -12,14 +12,26 @@ Slide Viewer is a PowerPoint add-in that lets you embed live webpages directly o
 
 ---
 
-## Option A: One-Click Install (Mac Only)
+## Option A: One-Click Install
+
+### Mac
 
 If you received the `install-mac.command` file:
 
 1. Double-click **`install-mac.command`**
 2. If macOS asks for permission, click **Open**
-3. A Terminal window will briefly appear and then close
+3. A Terminal window will briefly appear — read the message
 4. **Quit PowerPoint completely** (Cmd + Q) and reopen it
+5. Done! Go to the **"Using the Add-in"** section below
+
+### Windows
+
+If you received the `install-windows.bat` file:
+
+1. Double-click **`install-windows.bat`**
+2. If Windows asks "Do you want to run this file?", click **Run**
+3. A Command Prompt window will appear — read the message
+4. **Close PowerPoint completely** and reopen it
 5. Done! Go to the **"Using the Add-in"** section below
 
 ---
