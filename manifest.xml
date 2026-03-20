@@ -6,16 +6,16 @@
 
   <Id>94f1f1ac-8278-4a33-8989-5739d7e5452a</Id>
   <Version>1.0.0.0</Version>
-  <ProviderName>1010 Development</ProviderName>
+  <ProviderName>1-/10ths Development</ProviderName>
   <DefaultLocale>en-US</DefaultLocale>
 
-  <DisplayName DefaultValue="Slide Viewer" />
+  <DisplayName DefaultValue="Live Web Slide Viewer" />
   <Description DefaultValue="Embeds any webpage directly on a PowerPoint slide via iframe." />
 
   <IconUrl DefaultValue="https://rhinoboy82.github.io/powerpoint-airtable-viewer/assets/icon-32.png" />
   <HighResolutionIconUrl DefaultValue="https://rhinoboy82.github.io/powerpoint-airtable-viewer/assets/icon-64.png" />
 
-  <SupportUrl DefaultValue="https://rhinoboy82.github.io/powerpoint-airtable-viewer" />
+  <SupportUrl DefaultValue="https://1010thsdev.com/1010dev/slide-viewer/" />
 
   <Hosts>
     <Host Name="Presentation" />
@@ -36,8 +36,7 @@
   <Permissions>ReadWriteDocument</Permissions>
 
   <AppDomains>
-    <AppDomain>https://airtable.com</AppDomain>
-    <AppDomain>https://www.airtable.com</AppDomain>
+    <AppDomain>https://1010thsdev.com</AppDomain>
   </AppDomains>
 
   <AllowSnapshot>false</AllowSnapshot>
