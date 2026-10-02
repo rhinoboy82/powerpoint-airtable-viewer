@@ -83,5 +83,7 @@ spctl -a -vvv -t exec "$APP"
 
 # Zipped from inside dist-app so the archive holds the app alone. The
 # notarization ticket is stapled inside the app, so it travels with it.
-(cd "$OUT" && ditto -c -k --keepParent "$NAME.app" install-roomsum-mac.zip)
+# --norsrc --noextattr: no AppleDouble ._ entries (only macOS's local
+# provenance tag), which a non-Apple unzip would leave inside the signed app.
+(cd "$OUT" && rm -f install-roomsum-mac.zip && ditto -c -k --norsrc --noextattr --keepParent "$NAME.app" install-roomsum-mac.zip)
 echo "Done: $OUT/install-roomsum-mac.zip"
