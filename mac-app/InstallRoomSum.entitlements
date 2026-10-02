@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <!-- Nothing beyond the hardened runtime's defaults: the app downloads over
+       HTTPS and offers files to drag. The person's own drop in Finder does the
+       copying (see InstallRoomSum.swift for why). -->
+</dict>
+</plist>
