@@ -19,7 +19,7 @@ module.exports = (env, options) => {
     entry: { content: "./src/content.ts" },
     output: {
       path: path.resolve(__dirname, "dist"),
-      filename: "[name].js",
+      filename: "[name].[contenthash:8].js",
       clean: true,
     },
     resolve: { extensions: [".ts", ".js"] },
@@ -39,6 +39,7 @@ module.exports = (env, options) => {
         patterns: [
           { from: "assets", to: "assets" },
           { from: "manifest.xml", to: "manifest.xml" },
+          { from: "src/sw.js", to: "sw.js" },
         ],
       }),
     ],

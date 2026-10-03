@@ -3,3 +3,21 @@ dist/
 certs/
 .DS_Store
 *.log
+
+# Installer builds and earlier installer attempts. Rebuild with
+# build-mac-app.sh and build-win-zip.sh; the published copies live on
+# roomsum.com and 1010thsdev.com.
+dist-app/
+dist-pkg/
+pkg/
+*.zip
+*.app/
+
+# Signing material. This repo is public; certificates and signing requests
+# belong in the keychain.
+*.cer
+*.certSigningRequest
+*.p12
+
+# A Supabase CLI link left by a command run here (it names RoomSum's project).
+supabase/

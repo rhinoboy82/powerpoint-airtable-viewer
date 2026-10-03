@@ -1,13 +1,13 @@
-# How to Install Slide Viewer
+# How to Install Live Web Slide Viewer
 
-Slide Viewer is a PowerPoint add-in that lets you embed live webpages directly on a slide. This guide walks you through installing it — no coding required.
+Live Web Slide Viewer is a PowerPoint add-in that lets you embed live webpages directly on a slide. This guide walks you through installing it — no coding required.
 
 ---
 
 ## What You Need
 
-- **PowerPoint** for Mac (version 16 or later) or Windows (2016 or later)
-- **The `manifest.xml` file** (you should have received this, or download it from the GitHub repo)
+- **PowerPoint** for Mac (version 16 or later; the Mac installer needs macOS 12 or later) or Windows (2016 or later)
+- **The `manifest.xml` file** for the Windows installer (the Mac installer carries its own copy)
 - **An internet connection** (the add-in loads its interface from the web)
 
 ---
@@ -16,23 +16,31 @@ Slide Viewer is a PowerPoint add-in that lets you embed live webpages directly o
 
 ### Mac
 
-If you received the `install-mac.command` file:
+If you received **install-live-web-slide-viewer-mac.zip** (Intel or Apple Silicon):
 
-1. Double-click **`install-mac.command`**
-2. If macOS asks for permission, click **Open**
-3. A Terminal window will briefly appear — read the message
+1. Open the zip, then open **Install Live Web Slide Viewer**. If macOS asks "Are you sure you want to open it?", click **Open**. (The manifest travels inside the app; nothing else is needed.)
+2. It opens PowerPoint's add-in folder in Finder and shows one tile. Drag the tile into that Finder window. If Finder asks about an item that already exists, choose **Replace**.
+3. The installer says when the add-in has arrived. macOS lets only you put files in PowerPoint's folder, which is why this takes one drag. No administrator password.
 4. **Quit PowerPoint completely** (Cmd + Q) and reopen it
 5. Done! Go to the **"Using the Add-in"** section below
 
+> **Downloading with Chrome?** It may block a new installer as a suspicious file. Open Chrome's downloads list and choose to keep it.
+
 ### Windows
 
-If you received the `install-windows.bat` file:
+If you received **install-live-web-slide-viewer-win.zip**:
 
-1. Double-click **`install-windows.bat`**
-2. If Windows asks "Do you want to run this file?", click **Run**
-3. A Command Prompt window will appear — read the message
-4. **Close PowerPoint completely** and reopen it
-5. Done! Go to the **"Using the Add-in"** section below
+1. Unzip it; the folder holds **`install-windows.bat`**, **`manifest.xml`** and a README. Keep them together.
+2. Double-click **`install-windows.bat`**
+3. Windows may show a **"Windows protected your PC"** warning (SmartScreen):
+   - Click **"More info"**
+   - Then click **"Run anyway"**
+4. If you see a **"Do you want to run this file?"** prompt, click **Run**
+5. A Command Prompt window will appear — read the success message
+6. **Close PowerPoint completely** and reopen it
+7. Done! Go to the **"Using the Add-in"** section below
+
+> **Note:** The SmartScreen warning appears because the installer was downloaded from the internet. This is normal for unsigned scripts and is safe to proceed.
 
 ---
 
@@ -68,7 +76,7 @@ If you received the `install-windows.bat` file:
 1. Open any presentation
 2. Go to **Home** in the ribbon
 3. Click **Add-ins**
-4. You should see **Slide Viewer** — click it to insert
+4. You should see **Live Web Slide Viewer** — click it to insert
 
 ---
 
@@ -103,7 +111,7 @@ If you received the `install-windows.bat` file:
 1. Open any presentation
 2. Go to **Home** (or **Insert**) in the ribbon
 3. Click **Add-ins** (or **Get Add-ins** > **My Add-ins**)
-4. You should see **Slide Viewer** — click it to insert
+4. You should see **Live Web Slide Viewer** — click it to insert
 
 ---
 
@@ -122,7 +130,7 @@ If you received the `install-windows.bat` file:
 
 Once installed, here's how to use it:
 
-1. **Insert it**: Go to Home > Add-ins > Slide Viewer. A box appears on the slide.
+1. **Insert it**: Go to Home > Add-ins > Live Web Slide Viewer. A box appears on the slide.
 2. **Paste a URL**: Type or paste any HTTPS web address into the input field.
 3. **Click Load**: The webpage appears live inside the box.
 4. **Resize it**: Click the box and drag the corner handles to make it bigger or smaller. Drag the box itself to reposition it.

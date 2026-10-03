@@ -16,7 +16,28 @@ let isPresentationMode = false;
 
 /* ---- Initialization ---- */
 
+// Register service worker for offline caching
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.register("./sw.js").catch(() => {});
+}
+
+// Online/offline detection
+function updateOnlineStatus(): void {
+  const banner = document.getElementById("offline-banner");
+  if (banner) {
+    if (navigator.onLine) {
+      banner.classList.add("hidden");
+    } else {
+      banner.classList.remove("hidden");
+    }
+  }
+}
+
+window.addEventListener("online", updateOnlineStatus);
+window.addEventListener("offline", updateOnlineStatus);
+
 Office.onReady(() => {
+  updateOnlineStatus();
   initializeAddin();
 });
 
@@ -98,6 +119,7 @@ function checkPresentationMode(): void {
   try {
     // Primary: getActiveViewAsync returns the actual current view
     Office.context.document.getActiveViewAsync((result) => {
+      const wasPresentationMode = isPresentationMode;
       if (result.status === Office.AsyncResultStatus.Succeeded) {
         isPresentationMode = result.value === "read";
       } else {
@@ -106,10 +128,42 @@ function checkPresentationMode(): void {
           Office.context.document.mode === Office.DocumentMode.ReadOnly;
       }
       updateEditButtonVisibility();
+
+      // When entering presentation mode: refresh iframe or auto-load saved URL
+      if (isPresentationMode && !wasPresentationMode) {
+        const configVisible = !$("config-view").classList.contains("hidden");
+        if (configVisible) {
+          autoLoadSavedUrl();
+        } else {
+          refreshIframe();
+        }
+      }
     });
   } catch (e) {
     isPresentationMode = false;
     updateEditButtonVisibility();
+  }
+}
+
+function refreshIframe(): void {
+  const iframe = $("embed-frame") as HTMLIFrameElement;
+  if (iframe.src && iframe.src !== "about:blank") {
+    iframe.src = iframe.src;
+  }
+}
+
+function autoLoadSavedUrl(): void {
+  try {
+    const savedUrl = Office.context.document.settings.get(SETTINGS_URL_KEY);
+    if (savedUrl && typeof savedUrl === "string" && isValidHttpsUrl(savedUrl)) {
+      const savedViewport = Office.context.document.settings.get(SETTINGS_VIEWPORT_KEY);
+      if (savedViewport !== null && savedViewport !== undefined) {
+        currentViewportWidth = parseInt(savedViewport, 10) || 0;
+      }
+      loadEmbedView(savedUrl);
+    }
+  } catch (e) {
+    // Settings not available — nothing to auto-load
   }
 }
 
