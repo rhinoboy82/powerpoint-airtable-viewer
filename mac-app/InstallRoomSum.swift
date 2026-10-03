@@ -1,7 +1,10 @@
-// Install RoomSum Add-ins, the Mac installer (2026-10-02).
+// Install RoomSum Add-ins and Install Live Web Slide Viewer, the Mac
+// installers (2026-10-02, the Live Viewer build 2026-10-03). One app, built
+// twice by build-mac-app.sh; the Info.plist key InstallerProduct picks which
+// (see Product below).
 //
-// Gets the RoomSum add-in manifests into the folder PowerPoint for Mac reads at
-// launch, Microsoft's sideload location inside PowerPoint's own container:
+// Gets add-in manifests into the folder PowerPoint for Mac reads at launch,
+// Microsoft's sideload location inside PowerPoint's own container:
 // ~/Library/Containers/com.microsoft.Powerpoint/Data/Documents/wef
 //
 // Why the person drags them in. macOS 27 protects every app's container, and
@@ -22,13 +25,44 @@
 // and offers one tile to drag into it. Checking that a known file exists is
 // allowed, listing the folder is not, so it can confirm the drop afterwards.
 //
-// The add-in list comes from roomsum.com, as it did for the package, so adding
-// an add-in never needs a new build of this app.
-
 import AppKit
 
-let listURL = URL(string: "https://roomsum.com/ppt/manifests.txt")!
-let baseURL = URL(string: "https://roomsum.com/ppt/")!
+/// What this copy installs.
+///   roomsum     RoomSum's add-ins. The list comes from roomsum.com, as it did
+///               for the package, so adding an add-in never needs a new build.
+///   liveviewer  The Live Web Slide Viewer. Its one manifest travels inside the
+///               app (Resources/manifests), as it did in the Automator
+///               installer this replaces, and is installed under the same file
+///               name, so installing again replaces it.
+struct Product {
+  let name: String          // the app's and the window's title
+  let things: String        // "the RoomSum add-ins", as a sentence goes on
+  let label: String         // the tile's caption
+  let single: Bool          // one add-in or several, for the wording
+  let supportFolder: String // under ~/Library/Application Support
+  let listURL: URL?         // nil: the manifests inside the app
+  let baseURL: URL?
+  let filePrefix: String    // installed name = prefix + listed name
+}
+
+let product: Product = {
+  switch Bundle.main.object(forInfoDictionaryKey: "InstallerProduct") as? String {
+  case "liveviewer":
+    return Product(
+      name: "Install Live Web Slide Viewer", things: "the Live Web Slide Viewer",
+      label: "Live Web Slide Viewer", single: true, supportFolder: "Live Web Slide Viewer",
+      listURL: nil, baseURL: nil, filePrefix: "")
+  default:
+    return Product(
+      name: "Install RoomSum Add-ins", things: "the RoomSum add-ins",
+      label: "RoomSum add-ins", single: false, supportFolder: "RoomSum",
+      listURL: URL(string: "https://roomsum.com/ppt/manifests.txt")!,
+      baseURL: URL(string: "https://roomsum.com/ppt/")!, filePrefix: "roomsum-")
+  }
+}()
+
+func sentence(_ s: String) -> String { s.prefix(1).uppercased() + s.dropFirst() }
+
 let powerPointID = "com.microsoft.Powerpoint"
 let fm = FileManager.default
 
@@ -38,7 +72,7 @@ let wefFolder = powerPointDocuments.appendingPathComponent("wef", isDirectory: t
 /// The downloads wait here, in a folder named wef, so that when PowerPoint has
 /// no wef yet the whole folder can be dropped into its Documents.
 let staging = fm.homeDirectoryForCurrentUser
-  .appendingPathComponent("Library/Application Support/RoomSum/Installer/wef", isDirectory: true)
+  .appendingPathComponent("Library/Application Support/\(product.supportFolder)/Installer/wef", isDirectory: true)
 
 /// One GET, waited for: downloads run off the main thread.
 func fetch(_ url: URL) throws -> Data {
@@ -60,19 +94,30 @@ func fetch(_ url: URL) throws -> Data {
   return try result.get()
 }
 
-/// Every manifest, freshly downloaded into the staging folder. Returns the
-/// file names, or nil when roomsum.com could not be reached.
-func download() -> [String]? {
+/// Every manifest, freshly written into the staging folder. Returns the file
+/// names, or nil when roomsum.com could not be reached (or, for a product
+/// whose manifests are inside the app, when they are missing).
+func prepare() -> [String]? {
   do {
-    let list = String(decoding: try fetch(listURL), as: UTF8.self)
-    let names = list
-      .split(whereSeparator: \.isNewline)
-      .map { $0.trimmingCharacters(in: .whitespaces) }
-      // Plain file names only, as the list has always held.
-      .filter { $0.hasSuffix(".xml") && !$0.contains("/") && !$0.contains("..") && !$0.hasPrefix("-") }
-    if names.isEmpty { return nil }
     var files: [(String, Data)] = []
-    for name in names { files.append(("roomsum-\(name)", try fetch(baseURL.appendingPathComponent(name)))) }
+    if let listURL = product.listURL, let baseURL = product.baseURL {
+      let list = String(decoding: try fetch(listURL), as: UTF8.self)
+      let names = list
+        .split(whereSeparator: \.isNewline)
+        .map { $0.trimmingCharacters(in: .whitespaces) }
+        // Plain file names only, as the list has always held.
+        .filter { $0.hasSuffix(".xml") && !$0.contains("/") && !$0.contains("..") && !$0.hasPrefix("-") }
+      if names.isEmpty { return nil }
+      for name in names { files.append((product.filePrefix + name, try fetch(baseURL.appendingPathComponent(name)))) }
+    } else {
+      // Read and written, not copied: a copy keeps the build's file date, and
+      // the drop is confirmed by a date no older than this run.
+      guard let folder = Bundle.main.resourceURL?.appendingPathComponent("manifests", isDirectory: true)
+      else { return nil }
+      let names = try fm.contentsOfDirectory(atPath: folder.path).filter { $0.hasSuffix(".xml") }.sorted()
+      if names.isEmpty { return nil }
+      for name in names { files.append((product.filePrefix + name, try Data(contentsOf: folder.appendingPathComponent(name)))) }
+    }
     try? fm.removeItem(at: staging)
     try fm.createDirectory(at: staging, withIntermediateDirectories: true)
     for (file, data) in files { try data.write(to: staging.appendingPathComponent(file)) }
@@ -137,8 +182,8 @@ final class Tile: NSView, NSDraggingSource {
 
 final class Installer: NSObject, NSApplicationDelegate, NSWindowDelegate {
   var window: NSPanel!
-  let heading = NSTextField(labelWithString: "Getting the RoomSum add-ins…")
-  let detail = NSTextField(wrappingLabelWithString: "From roomsum.com, a few seconds.")
+  let heading = NSTextField(labelWithString: "Getting \(product.things)…")
+  let detail = NSTextField(wrappingLabelWithString: product.listURL == nil ? "" : "From roomsum.com, a few seconds.")
   let note = NSTextField(wrappingLabelWithString: "")
   let tile = Tile()
   let spinner = NSProgressIndicator()
@@ -161,10 +206,14 @@ final class Installer: NSObject, NSApplicationDelegate, NSWindowDelegate {
     }
     buildWindow()
     DispatchQueue.global(qos: .userInitiated).async {
-      let names = download()
+      let names = prepare()
       DispatchQueue.main.async {
         guard let names = names else {
-          self.stop("roomsum.com could not be reached", "Check this Mac's internet connection and open the installer again.")
+          if product.listURL == nil {
+            self.stop("This installer is incomplete", "Download it again, then open the new copy.")
+          } else {
+            self.stop("roomsum.com could not be reached", "Check this Mac's internet connection and open the installer again.")
+          }
           return
         }
         self.ready(names)
@@ -175,7 +224,7 @@ final class Installer: NSObject, NSApplicationDelegate, NSWindowDelegate {
   func buildWindow() {
     window = NSPanel(contentRect: NSRect(x: 0, y: 0, width: 380, height: 430),
                      styleMask: [.titled, .closable], backing: .buffered, defer: false)
-    window.title = "Install RoomSum Add-ins"
+    window.title = product.name
     window.level = .floating
     window.hidesOnDeactivate = false
     window.isReleasedWhenClosed = false
@@ -235,14 +284,16 @@ final class Installer: NSObject, NSApplicationDelegate, NSWindowDelegate {
     spinner.isHidden = true
     tile.isHidden = false
     secondary.isHidden = false
-    heading.stringValue = "Drag the add-ins into PowerPoint's folder"
+    heading.stringValue = product.single
+      ? "Drag the add-in into PowerPoint's folder"
+      : "Drag the add-ins into PowerPoint's folder"
     if hadWef {
       tile.urls = names.map { staging.appendingPathComponent($0) }
-      tile.caption = "\(names.count) RoomSum add-ins"
+      tile.caption = product.single ? product.label : "\(names.count) \(product.label)"
       detail.stringValue = "A Finder window named “wef” has opened: it is PowerPoint's add-in folder. Drag the tile below into that window. If Finder asks about items that already exist, choose Replace."
     } else {
       tile.urls = [staging]
-      tile.caption = "wef folder with \(names.count) add-ins"
+      tile.caption = product.single ? "wef folder with the add-in" : "wef folder with \(names.count) add-ins"
       detail.stringValue = "A Finder window named “Documents” has opened: it is PowerPoint's own folder. Drag the tile below into that window. It is a folder named wef, where PowerPoint looks for add-ins."
     }
     note.stringValue = "macOS lets only you put files in PowerPoint's folder, so this takes one drag rather than happening on its own."
@@ -277,7 +328,7 @@ final class Installer: NSObject, NSApplicationDelegate, NSWindowDelegate {
       return
     }
     heading.stringValue = arrived.isEmpty
-      ? "The add-ins aren't in PowerPoint's folder yet"
+      ? (product.single ? "The add-in isn't in PowerPoint's folder yet" : "The add-ins aren't in PowerPoint's folder yet")
       : "Only \(arrived.count) of \(names.count) add-ins arrived"
     detail.stringValue = hadWef
       ? "Drag the tile into the Finder window named “wef”, and choose Replace if Finder asks. Lost the window? Click Open the Folder Again."
@@ -289,11 +340,13 @@ final class Installer: NSObject, NSApplicationDelegate, NSWindowDelegate {
     let open = !NSRunningApplication.runningApplications(withBundleIdentifier: powerPointID).isEmpty
     tile.isHidden = true
     secondary.isHidden = true
-    heading.stringValue = "The RoomSum add-ins are installed"
+    heading.stringValue = "\(sentence(product.things)) \(product.single ? "is" : "are") installed"
     detail.stringValue = (open
       ? "PowerPoint is open: quit it completely (PowerPoint › Quit PowerPoint) and open it again."
       : "Open PowerPoint.")
-      + " The \(names.count) add-ins are under Insert › My Add-ins. Open this installer again any time to update them."
+      + (product.single
+        ? " It is under Insert › My Add-ins."
+        : " The \(names.count) add-ins are under Insert › My Add-ins. Open this installer again any time to update them.")
     note.stringValue = ""
     primary.title = "Done"
     window.orderFrontRegardless()
