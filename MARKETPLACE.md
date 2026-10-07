@@ -18,7 +18,7 @@ enrollment must succeed before any of the following can be uploaded.
 - Type: content add-in for PowerPoint (`ContentApp`, host `Presentation`).
 - Id `94f1f1ac-8278-4a33-8989-5739d7e5452a` stays: it is the add-in's identity
   for every existing install.
-- Version `1.1.0.0`, provider `10/10ths Development`, display name
+- Version `1.1.1.0`, provider `10/10ths Development`, display name
   `Live Web Slide Viewer`.
 - Validated with `office-addin-manifest` (`npm run validate`).
 
